@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: etl-03-pipeline
+  namespace: prefect
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      flow: etl-03-pipeline
+  template:
+    metadata:
+      labels:
+        flow: etl-03-pipeline
+    spec:
+      containers:
+        - name: etl-03-container
+          image: skccetlpipelinedevacr.azurecr.io/etl-03-pipeline:latest
+          env:
+            - name: PREFECT_API_URL
+              value: http://prefect-server/api           

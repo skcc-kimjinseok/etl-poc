@@ -1,0 +1,5 @@
+pandas
+cx_Oracle
+python-dotenv
+dask[dataframe]
+SQLAlchemy
