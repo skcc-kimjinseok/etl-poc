@@ -1,0 +1,44 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: etl-02-secret
+  namespace: prefect
+type: Opaque
+data:
+  dbpassword: <db password base64>
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: etl-02-flow
+  namespace: prefect
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      flow: etl-02-flow
+  template:
+    metadata:
+      labels:
+        flow: etl-02-flow
+    spec:
+      containers:
+        - name: etl-02-container
+          image: skccetlpipelinedevacr.azurecr.io/etl-02-pipeline:latest
+          env:
+            - name: PREFECT_API_URL
+              value: http://prefect-server/api
+            - name: DB_USER
+              value: system
+            - name: DB_HOST
+              value: "4.145.104.172"
+            - name: DB_PORT
+              value: "80"
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: etl-02-secret
+                  key: dbpassword
+            - name: DB_NAME
+              value: ORCLCDB

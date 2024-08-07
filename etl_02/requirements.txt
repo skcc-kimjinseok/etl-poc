@@ -1,0 +1,4 @@
+httpx
+sqlalchemy 
+cx-Oracle
+pandas 

@@ -1,0 +1,8 @@
+sqlalchemy 
+cx-Oracle
+pandas 
+dask
+pyarrow
+dask[complete]
+dask[dataframe]
+distributed
