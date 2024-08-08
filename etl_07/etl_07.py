@@ -13,8 +13,6 @@ from datetime import datetime
 import time
 
 
-# cx_Oracle.init_oracle_client("C:\oracle\instantclient-basic-windows.x64-23.4.0.24.05\instantclient_23_4")
-
 host = settings.ORACLE_HOST
 port = settings.ORACLE_PORT
 sid = settings.ORACLE_SID
@@ -149,11 +147,17 @@ def process_data(df):
     # df['processed_column'] = df['column_name'].apply(lambda x: x * 2)  # Example processing
     return df
     
+@task(log_prints=True)
+def add_column_to_db(df, column_name): 
+    df[column_name] = [get_current_timestamp()] * len(df) 
+    return df
+
 @flow(log_prints=True)
 def etl_07_flow(table_name_db_to_fetch, target_table_etl_07_project_data, chunk_size, max_workers):     
-    df = get_data_from_database(table_name_db_to_fetch)
-    df["insert_time"] = [get_current_timestamp()] * len(df)    
-    drop_and_create_table(df, target_table_etl_07_project_data)
+    df = get_data_from_database.with_options(name=f"Get data of table named {table_name_db_to_fetch}")(table_name_db_to_fetch)
+    column_name_to_add = "insert_time"
+    df = add_column_to_db.with_options(name=f"Add column named insert_time to data")(df, column_name_to_add)
+    drop_and_create_table.with_options(name=f"Drop and create new table named {target_table_etl_07_project_data}")(df, target_table_etl_07_project_data)
     save_to_db.with_options(name=f"Save data to database named {target_table_etl_07_project_data}")(df, target_table_etl_07_project_data, chunk_size, max_workers)
     
 @flow(log_prints=True)

@@ -12,8 +12,6 @@ from concurrent.futures import ThreadPoolExecutor
 import threading
 
 
-# cx_Oracle.init_oracle_client("C:\oracle\instantclient-basic-windows.x64-23.4.0.24.05\instantclient_23_4")
-
 host = settings.ORACLE_HOST
 port = settings.ORACLE_PORT
 sid = settings.ORACLE_SID
