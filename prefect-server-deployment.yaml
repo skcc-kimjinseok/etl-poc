@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prefect-server
+  namespace: prefect
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prefect-server
+  template:
+    metadata:
+      labels:
+        app: prefect-server
+    spec:
+      containers:
+        - name: prefect-server
+          image: prefecthq/prefect:2.19.4-python3.11
+          command: ["/opt/prefect/entrypoint.sh"]
+          args: ["prefect", "server", "start"]
+          env:
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: postgres-config
+                  key: POSTGRES_DB
+            - name: POSTGRES_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: postgres-config
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_PASSWORD
+            - name: PREFECT_API_DATABASE_CONNECTION_URL
+              value: >
+                postgresql+asyncpg://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$postgres:5432/$(POSTGRES_DB)
+            - name: PREFECT_UI_URL
+              value: http://127.0.0.1:4200
+            - name: PREFECT_API_URL
+              value: http://127.0.0.1:4200/api
+            - name: PREFECT_SERVER_API_HOST
+              value: 0.0.0.0
+
+          ports:
+            - containerPort: 4200
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prefect-server
+  namespace: prefect
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 80
+      targetPort: 4200
+  selector:
+    app: prefect-server
